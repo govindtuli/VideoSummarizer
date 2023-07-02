@@ -3,3 +3,5 @@
 
 # Ignore env folder
 /env/
+/__pycache__/
+/model/
