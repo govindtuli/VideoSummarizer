@@ -1,61 +1,101 @@
-const backendURL = 'http://127.0.0.1:5000'; // Replace 'backend-server-url' with the actual URL of your Flask backend server
+// Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Get the necessary elements from the DOM
+  const urlInput = document.getElementById('urlInput');
+  const btn1 = document.getElementById('startButton');
+  const progressBar = document.getElementById('progressBar');
+  const stepHeading = document.getElementById('stepHeading');
+  const videoSummary = document.getElementById("videoSummary");
+  // Add event listener to the button click event
+  btn1.addEventListener('click', () => {
+    const videoUrl = urlInput.value;
 
-function sendURL() {
-  const url = document.getElementById('urlInput').value; // Assuming you have an input field with id "urlInput" to enter the URL
-  const data = { video_url: url };
-
-  fetch(`${backendURL}/api`, { // Use the full backend URL
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Error: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(responseData => {
-      console.log(responseData);
-      checkStatus();
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-}
-
-function checkStatus() {
-  fetch(`${backendURL}/api/status`, { // Use the full backend URL
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
+    // Validate if the URL input is not empty
+    if (videoUrl.trim() === '') {
+      alert('Please enter a video URL');
+      return;
     }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Error: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(statusData => {
-      console.log(statusData);
-      if (statusData.status === 'The Video has been Summarized') {
-        // The video summarization is complete, you can access the summary message using statusData.message
-      } else {
-        // The video summarization is still in progress, you can check the status again after a delay
-        setTimeout(checkStatus, 100000); // Check status after 2 seconds (adjust the delay as needed)
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-}
 
+    // Disable the button to prevent multiple clicks
+    btn1.disabled = true;
 
-const submitButton = document.getElementById('btn1');
-submitButton.addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent the default form submission or button click behavior
-    sendURL();
-  });
+    // Start the video conversion process by making an AJAX request to the backend
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 202) {
+          // Show the progress bar
+          progressBar.style.width = '10%';
+          progressBar.setAttribute('aria-valuenow', '10');
+
+          // Update the step heading
+          stepHeading.textContent = 'Converting Video to Mp3';
+
+          // Poll the status endpoint to get the progress updates
+          pollStatus();
+        } else {
+          alert('Failed to start the video conversion process');
+          // Re-enable the button
+          btn1.disabled = false;
+        }
+      }
+    };
+    xhr.open('POST', 'http://localhost:5000/api');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({ video_url: videoUrl }));
+  });
+
+  // Function to poll the status endpoint and update the progress bar
+  function pollStatus() {
+    // Make a request to the status endpoint
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          const { status, message } = JSON.parse(xhr.responseText);
+
+          // Update the progress bar based on the status
+          switch (status) {
+            case 'Conversion Started':
+              progressBar.style.width = '10%';
+              progressBar.setAttribute('aria-valuenow', '10');
+              break;
+            case 'Audio has been Extracted from Video':
+              progressBar.style.width = '30%';
+              progressBar.setAttribute('aria-valuenow', '30');
+              break;
+            case 'The Audio has been Transcribed into Text using our Advanced AI':
+              progressBar.style.width = '80%';
+              progressBar.setAttribute('aria-valuenow', '80');
+              break;
+            case 'The Video has been Summarized':
+              progressBar.style.width = '100%';
+              progressBar.setAttribute('aria-valuenow', '100');
+              break;
+          }
+
+          // Check if the process has completed
+          if (status === 'The Video has been Summarized') {
+            // Update the step heading and display the summary message
+            stepHeading.textContent = 'Video Summarization Complete';
+            alert(`Video Summarized: ${message}`);
+            videoSummary.innerText=message;
+            // Ask the user to refresh the page
+            if (confirm('Video summarization is complete. Do you want to refresh the page?')) {
+              location.reload();
+            }
+          } else {
+            // Poll the status endpoint again after a short delay
+            setTimeout(pollStatus, 1000);
+          }
+        } else {
+          alert('An error occurred while checking the video conversion status');
+          // Re-enable the button
+          btn1.disabled = false;
+        }
+      }
+    };
+    xhr.open('GET', 'http://localhost:5000/api/status');
+    xhr.send();
+  }
+});
