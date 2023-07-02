@@ -1,105 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap Files -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
-    <title>Podcast Summarizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+        crossorigin="anonymous"></script>
+    <title>Video Summarizer</title>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">Video Summarizer</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Developers</a>
-              </li>
-            </ul>
-            <form class="d-flex" role="search">
-              <input class="form-control me-2" type="search" placeholder="Paste URL" aria-label="Search">
-              <button id="btn2" class="btn btn-outline-success" type="submit">Get Summary</button>
-            </form>
-          </div>
+            <a class="navbar-brand" href="#">Video Summarizer</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="developers.html">Developers</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-      </nav>
-      <div class="px-4 py-5 my-5 text-center">
+    </nav>
+    <div class="px-4 py-5 my-5 text-center">
         <h1 class="display-5 fw-bold text-body-emphasis">Video Summarizer</h1>
         <div class="col-lg-6 mx-auto">
-          <p class="lead mb-4">
-            Welcome to our website, the ultimate destination for podcast lovers. We are thrilled to introduce you to our revolutionary service that converts long video podcasts into concise text summaries. Say goodbye to time-consuming listening sessions and dive straight into the most important points and insights. Explore our website and unlock a world of knowledge with ease. 
-            Happy exploring! </p>
-          <div class="input-group mb-3">
-            <input id="urlInput" type="text" class="form-control" placeholder="Paste URL">
-            <div class="input-group-append">
-              <button id="btn1" class="btn btn-primary" type="button">Get Summary</button>
+            <p class="lead mb-4">
+                Welcome to our website, the ultimate destination for podcast lovers. We are thrilled to introduce you to
+                our revolutionary service that converts long video podcasts into concise text summaries. Say goodbye to
+                time-consuming listening sessions and dive straight into the most important points and insights. Explore
+                our website and unlock a world of knowledge with ease.
+                Happy exploring! </p>
+            <div class="input-group mb-3">
+                <input id="urlInput" type="text" class="form-control" placeholder="Paste URL">
+                <div class="input-group-append">
+                    <button id="startButton" class="btn btn-primary" type="button">Get Summary</button>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    
-      <div class="container">
+    </div>
+
+    <div class="container">
         <h5 id="stepHeading" class="text-center">Converting Video to Mp3</h5>
         <div class="progress">
-          <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-      </div>
-      <script>
+        <div id="summaryContainer" class="mt-5">
+            <h4>Video Summary:</h4>
+            <p id="videoSummary"></p>
+        </div>
+    </div>
+
+    <script>
         var progress = 0;
         var currentStep = 1;
         var progressBar = document.getElementById("progressBar");
         var stepHeading = document.getElementById("stepHeading");
-        var startButton1 = document.getElementById("btn1");
-        var startButton2 = document.getElementById("btn2");
+        var startButton = document.getElementById("startButton");
         var urlInput = document.getElementById("urlInput");
+        var videoSummary = document.getElementById("videoSummary");
         var progressInterval;
-        
+
+        // updates progress bar
         function updateProgress() {
-          progressBar.style.width = progress + "%";
-          progressBar.setAttribute("aria-valuenow", progress);
-          progressBar.innerText = progress + "%";
+            progressBar.style.width = progress + "%";
+            progressBar.setAttribute("aria-valuenow", progress);
+            progressBar.innerText = progress + "%";
         }
-        
+
+        //validates if the pasted link  is url or not
+        function validateURL(url) {
+            var urlPattern = /^(ftp|http|https):\/\/[^ "]+$/;
+
+            if (urlPattern.test(url)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        //checks the status of api used in our code
+        function checkAPIStatus() {
+            // Make an API request and check the status
+            fetch('https://api.example.com/status')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('API is up and running!');
+                    } else {
+                        console.log('API is down.');
+                    }
+                })
+                .catch(error => {
+                    console.log('Error occurred while checking API status:', error);
+                });
+        }
+
+        // Call the function every 5 seconds
+        setInterval(checkAPIStatus, 5000);
+        //starts the progress when button is clicked
         function startProgress() {
             var url = urlInput.value; // Get the entered URL from the input field
-            if (!url) {
-                alert("Please enter a valid URL.");
+            if (!validateURL(url)) {
+                alert("Invalid URL. Please enter a valid URL.");
                 return;
             }
-            progressInterval = setInterval(function() {
-            if (currentStep ===1 && progress < 20) {
-              progress += 5; // Update the progress value here based on your backend data
-              updateProgress();
-            } else {
-              clearInterval(progressInterval);
-              currentStep++; // Move to the next step
-              if (currentStep === 2 && progress<=90) {
-                stepHeading.innerText = "Preparing Transcription";
-                progress +=5;
-                updateProgress();
-                // Start the next progress here or wait for a signal from the backend
-              } else if (currentStep === 3 && progress<=100) {
-                stepHeading.innerText = "Summarizing Text";
-                progress +=5;
-                updateProgress();
-                // Start the next progress here or wait for a signal from the backend
-              }
-            }
-          }, 5000); // Update progress every 1 second
+
+            progressInterval = setInterval(function () {
+                checkAPIStatus()
+                if (currentStep === 1 && progress < 20) {
+                    progress += 5; // Update the progress value here based on your backend data
+                    updateProgress();
+                } else {
+                    clearInterval(progressInterval);
+                    currentStep++; // Move to the next step
+                    if (currentStep === 2 && progress <= 90) {
+                        stepHeading.innerText = "Preparing Transcription";
+                        progress += 5;
+                        updateProgress();
+                        // Start the next progress here or wait for a signal from the backend
+                    } else if (currentStep === 3 && progress <= 100) {
+                        stepHeading.innerText = "Summarizing Text";
+                        progress += 5;
+                        updateProgress();
+                        // Start the next progress here or wait for a signal from the backend
+                    }
+                }
+            }, 5000); // Update progress every 5 seconds
         }
-        
-        startButton1.addEventListener("click", startProgress);
-        startButton2.addEventListener("click", startProgress);
+
+        startButton.addEventListener("click", startProgress);
     </script>
 </body>
+
 </html>
