@@ -5,12 +5,14 @@ import whisper
 import torch
 import openai
 from dotenv import load_dotenv
+from multiprocessing import Process
 
 def convert_video_to_audio(url, output_path, max_duration):
     # Download the video from Google Drive or Youtube
     youtube = pytube.YouTube(url)
     video = youtube.streams.first()
     video.download()
+    
 
     # Check video duration
     if youtube.length > max_duration * 3600:
@@ -64,4 +66,9 @@ def LLMSummarizer(video_url,prompt_path):
     reply = response["choices"][0]["message"]["content"]
     os.remove(prompt_path)
     return reply
+
+
+
+# convert_video_to_audio("https://youtu.be/PNTCM7cbrsc","output.wav",2)
+
 

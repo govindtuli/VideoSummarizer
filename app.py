@@ -2,10 +2,13 @@ from flask import Flask, request, jsonify
 from threading import Thread
 from helpers import convert_video_to_audio, audio_transcriber, LLMSummarizer
 import uuid
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 conversion_thread = None
 global_status = None
+
 
 def start_conversion(video_url):
     global conversion_thread
@@ -61,13 +64,16 @@ def api_status():
 # Handle errors
 @app.errorhandler(404)
 def page_not_found(error):
+    print(error)
     response = {'error': 'Page not found'}
     return jsonify(response), 404
 
 @app.errorhandler(500)
 def internal_server_error(error):
+    print(error)
     response = {'error': 'Internal server error'}
     return jsonify(response), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
+
